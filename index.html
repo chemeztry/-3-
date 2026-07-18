@@ -181,29 +181,29 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-window.dataSdk = {
-  init: async function(handler) {
-    db.collection("submissions").onSnapshot((snapshot) => {
-      // 데이터가 변경될 때마다 전체 리스트를 다시 가져와서 handler로 보냄
-      const data = [];
-      snapshot.forEach((doc) => {
-        data.push(doc.data());
-      });
-      handler.onDataChanged(data);
-    });
-    return { isOk: true };
-  },
-  create: async function(record) {
-    try {
-      await db.collection("submissions").add(record);
-      return { isOk: true };
-    } catch (e) {
-      console.error(e);
-      return { isOk: false };
-    }
-  }
-};
-
+// Firebase 데이터 SDK 연결 (수정된 안전한 버전)
+    window.dataSdk = {
+      init: function(handler) {
+        db.collection("submissions").onSnapshot(function(snapshot) {
+          const data = [];
+          snapshot.forEach(function(doc) {
+            data.push(doc.data());
+          });
+          handler.onDataChanged(data);
+        });
+        return { isOk: true };
+      },
+      create: async function(record) {
+        try {
+          await db.collection("submissions").add(record);
+          return { isOk: true };
+        } catch (e) {
+          console.error(e);
+          return { isOk: false };
+        }
+      }
+    };
+    
     let allRecords = [];
     const TEACHER_ACCESS_CODE = '0406';
 
