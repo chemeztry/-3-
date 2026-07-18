@@ -182,7 +182,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 window.dataSdk = {
-window.dataSdk = {
   init: async function(handler) {
     db.collection("submissions").onSnapshot((snapshot) => {
       // 데이터가 변경될 때마다 전체 리스트를 다시 가져와서 handler로 보냄
