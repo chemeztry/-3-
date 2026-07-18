@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="ko">
 <head>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>물의 가열 곡선 관찰 앱</title>
@@ -163,41 +167,38 @@
   </section>
 
   <script>
-    // --- 1. 독립 실행을 위한 가상(Mock) 데이터 SDK 구현 ---
-    window.dataSdk = {
-      records: [],
-      init: async function(handler) {
-        this.handler = handler;
-        // 브라우저 로컬 스토리지에 데이터가 있으면 불러옴 (새로고침해도 유지됨)
-        const saved = localStorage.getItem('water_app_records');
-        if (saved) this.records = JSON.parse(saved);
-        if (this.handler) this.handler.onDataChanged(this.records);
-        return { isOk: true };
-      },
-      create: async function(record) {
-        this.records.push(record);
-        localStorage.setItem('water_app_records', JSON.stringify(this.records));
-        if (this.handler) this.handler.onDataChanged(this.records);
-        return { isOk: true };
-      }
-    };
+// 본인의 firebaseConfig 값으로 교체하세요!
+const firebaseConfig = {
+  apiKey: "AIzaSyD_tYsBe5wwTP1rxQCeOD_1_uIQyU1EGFs",
+  authDomain: "chemeztry-7fa62.firebaseapp.com",
+  projectId: "chemeztry-7fa62",
+  storageBucket: "chemeztry-7fa62.firebasestorage.app",
+  messagingSenderId: "248120227436",
+  appId: "1:248120227436:web:380ad7c34e16ac48238a49",
+  measurementId: "G-VXXJZZN4SH"
+};
 
-    // --- 2. 메인 애플리케이션 로직 ---
-    let currentStudentNumber = '';
-    let currentStudentName = '';
-    let allRecords = [];
-    const TEACHER_ACCESS_CODE = '0406';
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    const dataHandler = {
-      onDataChanged(data) {
-        allRecords = data;
-        renderDashboard();
-      }
-    };
-
-    (async () => {
-      await window.dataSdk.init(dataHandler);
-    })();
+window.dataSdk = {
+  init: async function(handler) {
+    db.collection("submissions").onSnapshot((snapshot) => {
+      const data = snapshot.docs.map(doc => doc.data());
+      handler.onDataChanged(data);
+    });
+    return { isOk: true };
+  },
+  create: async function(record) {
+    try {
+      await db.collection("submissions").add(record);
+      return { isOk: true };
+    } catch (e) {
+      console.error(e);
+      return { isOk: false };
+    }
+  }
+};
 
     // 대시보드 렌더링
     function renderDashboard() {
