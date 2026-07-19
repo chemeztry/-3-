@@ -181,31 +181,37 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Firebase 데이터 SDK 연결 (수정된 안전한 버전)
-    window.dataSdk = {
-      init: function(handler) {
-        db.collection("submissions").onSnapshot(function(snapshot) {
-          const data = [];
-          snapshot.forEach(function(doc) {
-            data.push(doc.data());
-          });
-          handler.onDataChanged(data);
-        });
-        return { isOk: true };
-      },
-      create: async function(record) {
-        try {
-          await db.collection("submissions").add(record);
-          return { isOk: true };
-        } catch (e) {
-          console.error(e);
-          return { isOk: false };
-        }
-      }
-    };
-    
+window.dataSdk = {
+  init: async function(handler) {
+    db.collection("submissions").onSnapshot((snapshot) => {
+      const data = snapshot.docs.map(doc => doc.data());
+      handler.onDataChanged(data);
+    });
+    return { isOk: true };
+  },
+  create: async function(record) {
+    try {
+      await db.collection("submissions").add(record);
+      return { isOk: true };
+    } catch (e) {
+      console.error(e);
+      return { isOk: false };
+    }
+  }
+};
+
     let allRecords = [];
     const TEACHER_ACCESS_CODE = '0406';
+
+window.dataSdk.init({
+  onDataChanged: function(data) {
+    allRecords = data;
+    // 대시보드 화면이 열려 있는 상태라면 바로 다시 그려줌
+    if (!document.getElementById('dashboardScreen').classList.contains('hidden')) {
+      renderDashboard();
+    }
+  }
+});
 
     // 대시보드 렌더링
     function renderDashboard() {
