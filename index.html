@@ -7,7 +7,7 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>물의 가열 곡선 관찰 앱</title>
+  <title>물의 상태 변화 탐구 학습지</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
@@ -41,6 +41,8 @@
     .dash-table th, .dash-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
     .dash-table th { background: #f1f5f9; font-weight: 700; position: sticky; top: 0; }
     .dash-table tr:hover td { background: #f8fafc; }
+    .tab-btn { transition: all .15s; }
+    .chain-select { transition: all .15s; }
   </style>
 </head>
 <body class="min-h-screen p-5 flex flex-col items-center">
@@ -48,16 +50,16 @@
   <section id="entryScreen" class="w-full max-w-md bg-white rounded-2xl shadow-lg p-7 my-auto">
     <div class="text-center mb-6">
       <div class="text-4xl mb-3" aria-hidden="true">🧪</div>
-      <h1 class="text-2xl font-bold mb-2">물의 가열 곡선 관찰 앱</h1>
-      <p class="text-gray-600">학번과 이름을 입력하고 실험을 시작하세요.</p>
+      <h1 class="text-2xl font-bold mb-2">물의 상태 변화 탐구 학습지</h1>
+      <p class="text-gray-600">학번과 이름을 입력하고 학습을 시작하세요.</p>
     </div>
     <form id="entryForm" class="space-y-4">
       <div>
-        <label class="font-bold mb-1 block" for="studentNumber">학번</label> 
+        <label class="font-bold mb-1 block" for="studentNumber">학번</label>
         <input id="studentNumber" type="text" inputmode="numeric" autocomplete="off" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="예: 10101">
       </div>
       <div>
-        <label class="font-bold mb-1 block" for="studentName">이름</label> 
+        <label class="font-bold mb-1 block" for="studentName">이름</label>
         <input id="studentName" type="text" autocomplete="name" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="홍길동">
       </div>
       <button type="submit" class="w-full py-3 rounded-lg font-medium text-lg transition bg-blue-600 text-white hover:bg-blue-700">입장하기</button>
@@ -73,71 +75,153 @@
     <form id="teacherAccessForm" class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
       <h2 class="text-xl font-bold mb-2">교사 모드 접속</h2>
       <p class="text-sm text-slate-600 mb-4">학생들의 제출 결과를 확인하기 위해 비밀번호를 입력해주세요.</p>
-      <label class="font-bold mb-1 block" for="teacherAccessCode">접근 코드</label> 
+      <label class="font-bold mb-1 block" for="teacherAccessCode">접근 코드</label>
       <input id="teacherAccessCode" type="password" inputmode="numeric" autocomplete="off" maxlength="6" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400">
       <p id="teacher-access-feedback" class="text-red-600 text-sm min-h-5 mt-2" aria-live="polite"></p>
       <div class="flex gap-2 mt-4">
-        <button type="button" class="flex-1 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300" onclick="closeTeacherAccess()">취소</button> 
+        <button type="button" class="flex-1 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300" onclick="closeTeacherAccess()">취소</button>
         <button type="submit" class="flex-1 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">확인</button>
       </div>
     </form>
   </div>
 
-  <!-- 2. App Screen (실험 화면) -->
+  <!-- 2. App Screen (학습 화면) -->
   <main id="appScreen" class="w-full max-w-3xl bg-white rounded-2xl shadow-lg p-6 hidden">
     <div class="flex items-center justify-between gap-3 mb-4 border-b pb-4">
-      <h1 class="text-xl text-center font-bold flex-1">🔥 물의 상태 변화와 가열 곡선 실험</h1>
+      <h1 class="text-xl text-center font-bold flex-1">🔥 물의 상태 변화 탐구 학습지</h1>
       <button type="button" class="px-3 py-2 rounded-lg text-sm whitespace-nowrap bg-gray-100 hover:bg-gray-200" onclick="goStudentHome()">나가기</button>
     </div>
-    <div class="text-center mb-5">
-      <button id="startBtn" class="px-6 py-3 text-lg rounded-lg font-bold transition bg-red-500 text-white hover:bg-red-600 shadow-md" onclick="startSimulation()">실험 시작 (가열하기)</button>
+
+    <!-- 시트 탭 네비게이션 -->
+    <div class="flex gap-2 mb-6" role="tablist">
+      <button type="button" id="tabBtn1" role="tab" aria-selected="true" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-blue-600 text-white" onclick="switchSheet(1)">📄 시트1. 실험 시뮬레이션</button>
+      <button type="button" id="tabBtn2" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="switchSheet(2)">📄 시트2. 실생활 탐구</button>
+      <button type="button" id="tabBtn3" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="switchSheet(3)">📄 시트3. 나만의 게임</button>
     </div>
-    <div class="flex flex-col md:flex-row gap-5 mb-6">
-      <!-- 시각화 영역 -->
-      <div class="flex-1 rounded-xl p-5 text-center border-2 border-blue-200 bg-blue-50/30">
-        <div id="statusText" class="font-bold text-gray-700 mb-1">얼음 (고체)</div>
-        <div class="lab-setup" aria-label="핫플레이트 위의 비커">
-          <div class="steam" aria-hidden="true">⌁⌁</div>
-          <div class="beaker">
-            <div class="ice-inside" id="iceInside" aria-hidden="true"><span>🧊</span><span>🧊</span><span>🧊</span></div>
-            <div class="liquid" id="liquidLevel"></div>
-            <div class="particle-model" id="particleModel"><span></span><span></span><span></span><span></span><span></span></div>
+
+    <!-- ===== 시트1: 실험 시뮬레이션 ===== -->
+    <div id="sheet1Content">
+      <div class="text-center mb-5">
+        <button id="startBtn" class="px-6 py-3 text-lg rounded-lg font-bold transition bg-red-500 text-white hover:bg-red-600 shadow-md" onclick="startSimulation()">실험 시작 (가열하기)</button>
+      </div>
+      <div class="flex flex-col md:flex-row gap-5 mb-6">
+        <!-- 시각화 영역 -->
+        <div class="flex-1 rounded-xl p-5 text-center border-2 border-blue-200 bg-blue-50/30">
+          <div id="statusText" class="font-bold text-gray-700 mb-1">얼음 (고체)</div>
+          <div class="lab-setup" aria-label="핫플레이트 위의 비커">
+            <div class="steam" aria-hidden="true">⌁⌁</div>
+            <div class="beaker">
+              <div class="ice-inside" id="iceInside" aria-hidden="true"><span>🧊</span><span>🧊</span><span>🧊</span></div>
+              <div class="liquid" id="liquidLevel"></div>
+              <div class="particle-model" id="particleModel"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="hotplate off" id="hotplate" aria-hidden="true"></div>
           </div>
-          <div class="hotplate off" id="hotplate" aria-hidden="true"></div>
+          <div class="text-sm text-gray-500 mt-2">현재 온도</div>
+          <div class="text-3xl font-bold text-red-500 mt-1"><span id="tempValue">-20</span>°C</div>
         </div>
-        <div class="text-sm text-gray-500 mt-2">현재 온도</div>
-        <div class="text-3xl font-bold text-red-500 mt-1"><span id="tempValue">-20</span>°C</div>
+        <!-- 그래프 영역 -->
+        <div class="flex-[1.5] border border-gray-200 rounded-xl p-3 bg-white">
+          <canvas id="graphCanvas"></canvas>
+        </div>
       </div>
-      <!-- 그래프 영역 -->
-      <div class="flex-[1.5] border border-gray-200 rounded-xl p-3 bg-white">
-        <canvas id="graphCanvas"></canvas>
+
+      <!-- 실험 확인 질문 -->
+      <div class="rounded-xl p-5 border-2 border-green-200 bg-green-50/30 mt-6">
+        <div class="font-bold text-lg mb-4 text-green-800">📝 실험 확인 질문</div>
+        <div class="space-y-4 mb-5">
+          <div>
+            <label class="font-bold mb-1 block text-gray-700" for="q1">1. 그래프에서 온도가 일정한 구간이 있나요? 몇 도인가요?</label>
+            <input id="q1" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
+          </div>
+          <div>
+            <label class="font-bold mb-1 block text-gray-700" for="q2">2. 가열 곡선에서 온도가 일정하게 유지되는 구간에서는 어떤 변화가 일어나고 있나요?</label>
+            <input id="q2" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
+          </div>
+          <div>
+            <label class="font-bold mb-1 block text-gray-700" for="q3">3. 온도가 일정한 구간에서 열에너지는 어디에 사용되나요?</label>
+            <input id="q3" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
+          </div>
+        </div>
+        <button type="button" class="w-full py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition" onclick="goToSheet2()">다음: 시트2. 실생활 탐구 활동 ▶</button>
       </div>
     </div>
-    
-    <!-- 퀴즈 영역 -->
-    <div class="rounded-xl p-5 border-2 border-green-200 bg-green-50/30 mt-6">
-      <div class="font-bold text-lg mb-4 text-green-800">📝 실험 확인 퀴즈</div>
-      <div class="space-y-4 mb-5">
-        <div>
-          <label class="font-bold mb-1 block text-gray-700" for="q1">1. 그래프에서 온도가 일정한 구간이 있나요? 몇 도인가요?</label> 
-          <input id="q1" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
-        </div>
-        <div>
-          <label class="font-bold mb-1 block text-gray-700" for="q2">2. 가열 곡선에서 온도가 일정하게 유지되는 구간에서는 어떤 변화가 일어나고 있나요?</label> 
-          <input id="q2" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
-        </div>
-        <div>
-          <label class="font-bold mb-1 block text-gray-700" for="q3">3. 온도가 일정한 구간에서 열에너지는 어디에 사용되나요?</label> 
-          <input id="q3" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
+
+    <!-- ===== 시트2: 실생활 탐구 활동 ===== -->
+    <div id="sheet2Content" class="hidden">
+      <div class="rounded-xl p-5 border-2 border-amber-200 bg-amber-50/40 mb-6">
+        <div class="font-bold text-lg mb-2 text-amber-800">🌍 실생활 속 상태 변화와 열에너지 - 인과 관계로 설명하기</div>
+        <p class="text-sm text-gray-700 leading-relaxed mb-3">실생활 속 현상은 "원인 → 상태 변화와 열에너지 → 결과"의 순서로 논리적으로 연결해서 설명할 수 있습니다. 아래 예시처럼, 빈칸에 알맞은 말을 골라 각 현상의 인과 관계를 완성해 보세요.</p>
+        <div class="rounded-lg bg-white border border-amber-200 p-3 text-sm flex flex-wrap items-center gap-2">
+          <span class="px-2 py-1 rounded bg-slate-100 font-medium">🥤 캔을 얼음물에 담근다</span>
+          <span class="text-amber-600 font-bold">→</span>
+          <span class="px-2 py-1 rounded bg-red-50 text-red-700 font-medium">얼음이 <u>융해</u>되면서 열에너지가 <u>흡수</u>된다</span>
+          <span class="text-amber-600 font-bold">→</span>
+          <span class="px-2 py-1 rounded bg-slate-100 font-medium">캔이 시원해진다</span>
         </div>
       </div>
-      <button id="submitQuizBtn" class="w-full py-3 rounded-lg font-bold text-lg bg-green-600 text-white hover:bg-green-700 transition" onclick="checkAnswers()">정답 제출하기</button>
-      <div id="quiz-feedback" class="mt-4 font-bold text-center text-lg"></div>
+
+      <div id="classificationGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6"></div>
+
+      <div class="rounded-xl p-5 border-2 border-green-200 bg-green-50/30 mb-6">
+        <div class="font-bold text-lg mb-4 text-green-800">🔎 조금 더 깊이 생각해보기</div>
+        <div class="space-y-4">
+          <div>
+            <label class="font-bold mb-1 block text-gray-700" for="q4">4. 위 4가지 예시 중 하나를 골라, "원인 → 상태 변화와 열에너지 → 결과" 순서로 인과 관계를 완성한 문장을 직접 써보세요.</label>
+            <textarea id="q4" rows="3" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="예: 음료수 캔을 얼음물에 담근다 → 얼음이 녹으면서(융해) 열에너지가 흡수된다 → 캔이 시원해진다."></textarea>
+          </div>
+          <div>
+            <label class="font-bold mb-1 block text-gray-700" for="q5">5. 위 예시 외에, 내가 직접 경험했던 상태 변화 사례를 골라 같은 형식(원인 → 상태 변화와 열에너지 → 결과)으로 서술해 보세요.</label>
+            <textarea id="q5" rows="3" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="일상에서 경험한 예시를 위와 같은 인과 관계 형식으로 써보세요"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" class="px-5 py-3 rounded-lg font-bold bg-gray-100 hover:bg-gray-200" onclick="switchSheet(1)">◀ 이전: 시트1</button>
+        <button type="button" class="flex-1 py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition" onclick="switchSheet(3)">다음: 시트3. 나만의 게임 만들기 ▶</button>
+      </div>
+    </div>
+
+    <!-- ===== 시트3: 나만의 게임/시뮬레이션 만들기 (바이브 코딩) ===== -->
+    <div id="sheet3Content" class="hidden">
+      <div class="rounded-xl p-5 border-2 border-violet-200 bg-violet-50/40 mb-6">
+        <div class="font-bold text-lg mb-2 text-violet-800">🎮 나만의 열에너지 게임 · 시뮬레이션 만들기</div>
+        <p class="text-sm text-gray-700 leading-relaxed">열에너지 흡수·방출과 상태 변화를 주제로 만들고 싶은 게임이나 시뮬레이션 아이디어를 자유롭게 글로 설명해보세요. AI가 여러분의 아이디어(프롬프트)를 실제로 동작하는 코드로 만들어줍니다. 이것이 바로 "바이브 코딩"이에요!</p>
+      </div>
+
+      <div class="rounded-xl p-5 border-2 border-purple-200 bg-white mb-6">
+        <label class="font-bold mb-2 block text-gray-700" for="vibePrompt">✏️ 내 게임/시뮬레이션 아이디어 (프롬프트)</label>
+        <textarea id="vibePrompt" rows="4" class="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-violet-400" placeholder="예: 얼음을 클릭해서 녹이면 점수가 올라가고, 온도가 100도가 되면 물방울이 수증기가 되어 화면 위로 날아가는 클리커 게임을 만들고 싶어요."></textarea>
+
+        <div class="mt-3">
+          <div class="text-xs text-gray-500 mb-1.5">💡 아이디어가 떠오르지 않는다면 클릭해보세요</div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="px-3 py-1.5 rounded-full text-xs bg-violet-100 text-violet-700 hover:bg-violet-200" onclick="fillVibeIdea('얼음(고체)을 계속 클릭해서 온도를 올리는 클리커 게임을 만들고 싶어요. 0도가 되면 물(액체)로 바뀌고, 100도가 되면 수증기(기체)가 되어 화면 위로 날아가며 점수를 얻어요. 상태가 바뀔 때마다 화면에 상태 변화 이름(융해, 기화)이 나타났으면 좋겠어요.')">🧊 얼음 녹이기 클리커 게임</button>
+            <button type="button" class="px-3 py-1.5 rounded-full text-xs bg-violet-100 text-violet-700 hover:bg-violet-200" onclick="fillVibeIdea('고체→액체→기체 순서, 그리고 기체→액체→고체 순서로 상태 변화 카드를 올바른 순서로 드래그하거나 클릭해서 배열하는 순서 맞추기 게임을 만들고 싶어요. 순서가 맞으면 점수를 얻고, 각 변화 단계 이름(융해, 기화, 액화, 응고)도 함께 보여주세요.')">🔢 상태 변화 순서 맞추기 게임</button>
+            <button type="button" class="px-3 py-1.5 rounded-full text-xs bg-violet-100 text-violet-700 hover:bg-violet-200" onclick="fillVibeIdea('실생활 예시(땀 증발, 고드름 얼기, 스팀다리미 등)가 화면 위에서 아래로 떨어지면, 흡열이면 왼쪽 버튼, 발열이면 오른쪽 버튼을 눌러 분류하는 슈팅/캐치 게임을 만들고 싶어요. 정답이면 점수가 오르고 틀리면 목숨이 줄어드는 방식으로 만들어주세요.')">🎯 흡열·발열 판별 슈팅 게임</button>
+          </div>
+        </div>
+
+        <button type="button" id="generateVibeBtn" class="w-full mt-4 py-3 rounded-lg font-bold text-lg bg-violet-600 text-white hover:bg-violet-700 transition" onclick="generateVibeCode()">✨ 코드로 만들기</button>
+        <p id="vibeStatus" class="text-sm min-h-5 mt-2 text-center" aria-live="polite"></p>
+      </div>
+
+      <div class="rounded-xl border-2 border-gray-200 bg-gray-50 p-3 mb-6">
+        <div class="font-bold text-sm text-gray-600 mb-2">🖥️ 내 게임/시뮬레이션 미리보기</div>
+        <iframe id="vibePreviewFrame" class="w-full rounded-lg border border-gray-200 bg-white" style="height: 420px;" sandbox="allow-scripts" title="학생이 만든 게임 미리보기"></iframe>
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" class="px-5 py-3 rounded-lg font-bold bg-gray-100 hover:bg-gray-200" onclick="switchSheet(2)">◀ 이전: 시트2</button>
+        <button id="submitAllBtn" type="button" class="flex-1 py-3 rounded-lg font-bold text-lg bg-green-600 text-white hover:bg-green-700 transition" onclick="checkAndSubmitAll()">✅ 시트1·2·3 답변 모두 제출하기</button>
+      </div>
+      <div id="final-submit-feedback" class="mt-4 font-bold text-center text-lg" aria-live="polite"></div>
     </div>
   </main>
 
   <!-- 3. Teacher Dashboard (교사 대시보드 화면) -->
-  <section id="dashboardScreen" class="w-full max-w-5xl bg-white rounded-2xl shadow-lg p-6 hidden">
+  <section id="dashboardScreen" class="w-full max-w-6xl bg-white rounded-2xl shadow-lg p-6 hidden">
     <div class="flex items-center justify-between mb-5 border-b pb-4">
       <h1 class="text-2xl font-bold">👩‍🏫 교사 대시보드 (학생 제출 현황)</h1>
       <div class="flex gap-2">
@@ -175,9 +259,13 @@
           <tr>
             <th>학번</th>
             <th>이름</th>
-            <th>Q1. 온도 변화</th>
-            <th>Q2. 일정 유지 구간</th>
-            <th>Q3. 열에너지 사용처</th>
+            <th>[시트1] Q1</th>
+            <th>[시트1] Q2</th>
+            <th>[시트1] Q3</th>
+            <th>[시트2] 인과관계 완성</th>
+            <th>[시트2] Q4</th>
+            <th>[시트2] Q5</th>
+            <th>[시트3] 게임 프롬프트</th>
             <th>제출 시간</th>
             <th>관리</th>
           </tr>
@@ -206,6 +294,19 @@
         <button type="button" class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200" onclick="toggleAiFeedbackEdit()" id="aiFeedbackEditToggleBtn">✏️ 수정하기</button>
         <button type="button" class="ml-auto px-3 py-2 rounded-lg text-xs text-gray-400 hover:text-gray-600 underline" onclick="resetGeminiApiKey()">API 키 변경</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 시트3 게임 코드 실행 모달 (교사용) -->
+  <div id="vibeCodeModal" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-5 hidden z-50" role="dialog" aria-modal="true">
+    <div class="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-xl font-bold">🎮 학생이 만든 게임/시뮬레이션</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-700 text-xl leading-none" onclick="closeVibeCodeViewer()" aria-label="닫기">✕</button>
+      </div>
+      <p id="vibeCodeStudentLabel" class="text-sm text-slate-500 mb-1"></p>
+      <p id="vibeCodePromptLabel" class="text-xs text-slate-400 mb-3"></p>
+      <iframe id="vibeCodeViewerFrame" class="w-full rounded-lg border border-gray-200 bg-white" style="height: 450px;" sandbox="allow-scripts" title="학생이 만든 게임 실행 화면"></iframe>
     </div>
   </div>
 
@@ -380,10 +481,15 @@ window.dataSdk = {
           <td>${esc(r.answer_1)}</td>
           <td>${esc(r.answer_2)}</td>
           <td>${esc(r.answer_3)}</td>
+          <td class="font-medium whitespace-nowrap">${esc(r.classification_score)}</td>
+          <td>${esc(r.answer_4)}</td>
+          <td>${esc(r.answer_5)}</td>
+          <td>${esc(r.vibe_prompt)}</td>
           <td class="text-gray-400 text-xs">${time}</td>
           <td>
-            <div class="flex gap-1.5">
+            <div class="flex flex-col gap-1.5">
               <button type="button" class="px-3 py-1.5 rounded-md text-xs font-medium bg-violet-50 text-violet-700 hover:bg-violet-100 border border-violet-200 whitespace-nowrap" data-id="${esc(r._id)}" onclick="openAiFeedback(this.dataset.id)">🤖 AI 피드백</button>
+              <button type="button" class="px-3 py-1.5 rounded-md text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 whitespace-nowrap" data-id="${esc(r._id)}" ${r.vibe_code ? '' : 'disabled'} onclick="openVibeCodeViewer(this.dataset.id)">🎮 게임 실행${r.vibe_code ? '' : ' (코드 없음)'}</button>
               <button type="button" class="px-3 py-1.5 rounded-md text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 whitespace-nowrap" data-id="${esc(r._id)}" onclick="deleteSubmission(this.dataset.id, '${esc(r.student_name)}')">삭제</button>
             </div>
           </td>`;
@@ -411,21 +517,21 @@ window.dataSdk = {
         alert('다운로드할 제출 데이터가 없습니다.');
         return;
       }
-      const headers = ['학번', '이름', 'Q1. 온도 변화', 'Q2. 일정 유지 구간', 'Q3. 열에너지 사용처', '제출 시간'];
+      const headers = ['학번', '이름', '[시트1] Q1. 온도 변화', '[시트1] Q2. 일정 유지 구간', '[시트1] Q3. 열에너지 사용처', '[시트2] 인과관계 완성 점수', '[시트2] Q4. 인과 관계 서술', '[시트2] Q5. 나만의 예시', '[시트3] 게임 프롬프트', '제출 시간'];
       const sorted = [...allRecords].sort((a, b) => (a.student_number || '').localeCompare(b.student_number || '', 'ko'));
       const rows = sorted.map(r => {
         const time = r.submitted_at ? new Date(r.submitted_at).toLocaleString('ko-KR') : '';
-        return [r.student_number, r.student_name, r.answer_1, r.answer_2, r.answer_3, time].map(csvField).join(',');
+        return [r.student_number, r.student_name, r.answer_1, r.answer_2, r.answer_3, r.classification_score, r.answer_4, r.answer_5, r.vibe_prompt, time].map(csvField).join(',');
       });
       const csvContent = [headers.map(csvField).join(','), ...rows].join('\r\n');
 
       // 엑셀에서 한글이 깨지지 않도록 UTF-8 BOM을 앞에 붙인다
-      const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const today = new Date().toISOString().slice(0, 10);
       link.href = url;
-      link.download = `물의_가열곡선_제출현황_${today}.csv`;
+      link.download = `물의_상태변화_탐구_제출현황_${today}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -456,28 +562,38 @@ window.dataSdk = {
     }
 
     function buildFeedbackPrompt(record) {
-      return `당신은 중학교 과학 교사입니다. 아래는 "물의 가열 곡선(상태 변화)" 실험 후 학생이 제출한 서술형 퀴즈 답안입니다.
+      return `당신은 중학교 과학 교사입니다. 아래는 "물의 상태 변화 탐구 학습지"(시트1: 가열 곡선 실험, 시트2: 실생활 속 상태 변화 탐구, 시트3: 바이브 코딩으로 만든 나만의 게임·시뮬레이션) 활동 후 학생이 제출한 답안입니다.
 학생의 답안을 평가하여, 학부모나 생활기록부에 참고할 수 있는 짧고 구체적인 맞춤형 평가 초안을 작성해주세요.
 
 [핵심 개념 - 채점 기준]
-- 문항1: 온도가 일정하게 유지되는 구간은 0°C(어는점/녹는점)와 100°C(끓는점) 부근이다.
-- 문항2: 온도가 일정한 구간에서는 물질의 상태 변화(고체→액체, 액체→기체)가 일어난다.
-- 문항3: 이 구간에서 공급된 열에너지는 온도를 높이는 데 쓰이지 않고, 상태 변화(분자 배열이나 분자 간 인력 변화)에 쓰인다.
+- 시트1 문항1: 온도가 일정하게 유지되는 구간은 0°C(어는점/녹는점)와 100°C(끓는점) 부근이다.
+- 시트1 문항2: 온도가 일정한 구간에서는 물질의 상태 변화(고체→액체, 액체→기체)가 일어난다.
+- 시트1 문항3: 이 구간에서 공급된 열에너지는 온도를 높이는 데 쓰이지 않고, 상태 변화(분자 배열이나 분자 간 인력 변화)에 쓰인다.
+- 시트2: 실생활 현상 4가지에 대해 "원인 → 상태 변화와 열에너지 → 결과"의 인과 관계를 논리적으로 완성할 수 있어야 한다. 이 현상들은 모두 융해 또는 기화가 일어나며 열에너지를 흡수한다는 개념을 현상의 원인과 결과에 정확히 연결지어 설명할 수 있어야 한다.
+- 시트3: 학생이 직접 작성한 프롬프트(게임 기획 아이디어)에 열에너지 흡수·방출 및 상태 변화 개념이 얼마나 정확하고 창의적으로 반영되어 있는지가 중요하다.
 
 [학생 정보]
 학번: ${record.student_number}
 이름: ${record.student_name}
 
-[학생 답안]
+[학생 답안 - 시트1: 가열 곡선 실험]
 문항1(온도 변화): ${record.answer_1}
 문항2(일정 유지 구간에서의 변화): ${record.answer_2}
 문항3(열에너지의 사용처): ${record.answer_3}
+
+[학생 답안 - 시트2: 실생활 탐구]
+인과관계 완성 점수: ${record.classification_score || '(기록 없음)'} (상세: ${record.classification_detail || '없음'})
+문항4(인상 깊은 예시 설명): ${record.answer_4 || '(답변 없음)'}
+문항5(나만의 실생활 예시): ${record.answer_5 || '(답변 없음)'}
+
+[학생 답안 - 시트3: 나만의 게임·시뮬레이션 기획(바이브 코딩 프롬프트)]
+${record.vibe_prompt || '(작성 없음)'}
 
 [작성 지침]
 - 순수한 평문으로만 작성하고, 마크다운 기호(*, #, - 등)는 쓰지 마세요.
 - 아래 세 항목으로 나누어 작성하세요. 각 항목의 제목은 그대로 사용하고, 항목 사이는 줄바꿈으로 구분하세요.
 
-잘한 점: (학생이 정확히 이해하고 있는 개념을 1~2문장으로 구체적으로 짚어주세요)
+잘한 점: (학생이 정확히 이해하고 있는 개념을 1~2문장으로 구체적으로 짚어주세요. 시트1·시트2·시트3 내용을 함께 고려하세요)
 보완할 점: (놓치거나 부정확하게 서술한 개념을 1~2문장으로 짚어주세요. 부족한 부분이 없다면 "특별히 보완할 점은 없습니다"라고 쓰세요)
 조금 더 생각해보면 좋을 점: (학생의 이해를 한 단계 확장할 수 있는 질문이나 방향을 1~2문장으로 제시하세요)
 
@@ -614,6 +730,20 @@ window.dataSdk = {
       }
     }
 
+    // 학생이 시트3에서 만든 게임 코드를 교사가 실행해볼 수 있도록 모달에 띄운다
+    function openVibeCodeViewer(id) {
+      const record = allRecords.find(r => String(r._id) === String(id));
+      if (!record || !record.vibe_code) { alert('실행할 수 있는 게임 코드가 없습니다.'); return; }
+      document.getElementById('vibeCodeStudentLabel').textContent = `${record.student_number} · ${record.student_name} 학생`;
+      document.getElementById('vibeCodePromptLabel').textContent = `프롬프트: ${record.vibe_prompt || '(작성 없음)'}`;
+      document.getElementById('vibeCodeViewerFrame').srcdoc = record.vibe_code;
+      document.getElementById('vibeCodeModal').classList.remove('hidden');
+    }
+    function closeVibeCodeViewer() {
+      document.getElementById('vibeCodeModal').classList.add('hidden');
+      document.getElementById('vibeCodeViewerFrame').srcdoc = '';
+    }
+
     // 학생 데이터 삭제
     async function deleteSubmission(id, name) {
       if (!id) return;
@@ -665,10 +795,29 @@ window.dataSdk = {
       document.getElementById('appScreen').classList.add('hidden');
       document.getElementById('entryScreen').classList.remove('hidden');
       document.getElementById('entryForm').reset();
-      document.getElementById('quiz-feedback').textContent = '';
+      resetSheetsState();
+    }
+
+    // 세 시트의 입력값·상태를 모두 초기 상태로 되돌린다
+    function resetSheetsState() {
       document.getElementById('q1').value = '';
       document.getElementById('q2').value = '';
       document.getElementById('q3').value = '';
+      document.getElementById('q4').value = '';
+      document.getElementById('q5').value = '';
+      document.getElementById('final-submit-feedback').textContent = '';
+      const submitBtn = document.getElementById('submitAllBtn');
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✅ 시트1·2·3 답변 모두 제출하기';
+      classificationAnswers = {};
+      renderCards();
+      document.getElementById('vibePrompt').value = '';
+      document.getElementById('vibePreviewFrame').srcdoc = '';
+      document.getElementById('vibeStatus').textContent = '';
+      document.getElementById('generateVibeBtn').disabled = false;
+      document.getElementById('generateVibeBtn').textContent = '✨ 코드로 만들기';
+      lastVibeCode = '';
+      switchSheet(1);
     }
 
     // 학생 입장 처리
@@ -682,17 +831,293 @@ window.dataSdk = {
       document.getElementById('entry-feedback').textContent = '';
       document.getElementById('entryScreen').classList.add('hidden');
       document.getElementById('appScreen').classList.remove('hidden');
-      
+
       // 상태 초기화
       time = 0;
       temperature = -20;
       dataPoints = [];
       updateVisuals(temperature);
       drawGraph();
+      resetSheetsState();
       requestAnimationFrame(resize);
     });
 
-    // --- 3. 실험 및 그래프 로직 ---
+    // --- 시트 탭 전환 로직 ---
+    function switchSheet(n) {
+      document.getElementById('sheet1Content').classList.toggle('hidden', n !== 1);
+      document.getElementById('sheet2Content').classList.toggle('hidden', n !== 2);
+      document.getElementById('sheet3Content').classList.toggle('hidden', n !== 3);
+      [1, 2, 3].forEach(i => {
+        const tab = document.getElementById(`tabBtn${i}`);
+        tab.classList.toggle('bg-blue-600', n === i);
+        tab.classList.toggle('text-white', n === i);
+        tab.classList.toggle('bg-gray-100', n !== i);
+        tab.classList.toggle('text-gray-600', n !== i);
+        tab.setAttribute('aria-selected', n === i);
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function goToSheet2() { switchSheet(2); }
+
+    // --- 시트2: 실생활 인과 관계 완성 활동 데이터 및 로직 ---
+    // cause: 관찰되는 원인 상황 / effect: 그 결과 관찰되는 현상 / subject: 상태 변화의 주어가 되는 물질
+    // concept: 정답 상태 변화 / correct: 정답 열에너지 방향(absorb=흡수, release=방출)
+    const CONCEPT_OPTIONS = ['융해', '기화', '응고', '액화', '승화'];
+    const CARD_DATA = [
+      { id: 1, emoji: '🧊🥤', cause: '음료수 캔을 얼음물에 담가둔다', subject: '얼음물 속 얼음이', effect: '캔이 시원해진다', concept: '융해', correct: 'absorb' },
+      { id: 2, emoji: '📄🔥', cause: '종이 냄비에 물을 넣고 불로 가열한다', subject: '냄비 속 물이', effect: '물이 끓어도 종이 냄비는 타지 않는다', concept: '기화', correct: 'absorb' },
+      { id: 3, emoji: '💦', cause: '더운 날 운동을 해서 땀이 난다', subject: '땀이', effect: '땀이 마르면서 몸이 시원해진다', concept: '기화', correct: 'absorb' },
+      { id: 4, emoji: '🍦', cause: '소금과 얼음을 섞어 통 안에 아이스크림 재료를 넣는다', subject: '소금과 섞인 얼음이', effect: '시간이 지나면 재료가 얼어 아이스크림이 된다', concept: '융해', correct: 'absorb' }
+    ];
+    let classificationAnswers = {};
+
+    function renderCards() {
+      const grid = document.getElementById('classificationGrid');
+      const conceptOptions = CONCEPT_OPTIONS.map(c => `<option value="${c}">${c}</option>`).join('');
+      grid.innerHTML = CARD_DATA.map(c => `
+        <div class="rounded-xl border-2 border-gray-200 p-4 bg-white transition-colors" id="card-${c.id}">
+          <div class="flex items-start gap-2 mb-3">
+            <div class="text-2xl">${c.emoji}</div>
+            <div class="text-sm font-medium text-gray-700">${c.cause}</div>
+          </div>
+          <div class="text-sm text-gray-700 leading-relaxed bg-slate-50 rounded-lg p-3 mb-2">
+            ${c.subject}
+            <select class="chain-select mx-1 px-2 py-1 rounded border border-gray-300 text-sm" data-card="${c.id}" data-field="concept" onchange="updateCardAnswer(${c.id}, 'concept', this.value)">
+              <option value="">선택</option>${conceptOptions}
+            </select>
+            되면서 열에너지를
+            <select class="chain-select mx-1 px-2 py-1 rounded border border-gray-300 text-sm" data-card="${c.id}" data-field="heat" onchange="updateCardAnswer(${c.id}, 'heat', this.value)">
+              <option value="">선택</option>
+              <option value="absorb">흡수</option>
+              <option value="release">방출</option>
+            </select>
+            한다.
+          </div>
+          <div class="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 mb-2">
+            <span class="text-lg" aria-hidden="true">➡️</span>
+            <div class="text-sm font-bold text-amber-800">결과: <span class="font-semibold text-gray-800">"${c.effect}"</span></div>
+          </div>
+          <div id="card-feedback-${c.id}" class="text-xs font-bold min-h-4"></div>
+        </div>`).join('');
+    }
+
+    const CARD_BASE_CLASS = 'rounded-xl border-2 p-4 transition-colors';
+
+    function updateCardAnswer(id, field, value) {
+      if (!classificationAnswers[id]) classificationAnswers[id] = {};
+      classificationAnswers[id][field] = value;
+      const select = document.querySelector(`.chain-select[data-card="${id}"][data-field="${field}"]`);
+      select.classList.toggle('border-violet-400', !!value);
+      select.classList.toggle('bg-violet-50', !!value);
+      checkCardAnswer(id);
+    }
+
+    // 카드 하나가 완전히 답변되었는지(상태 변화 + 열에너지 방향 모두 선택) 확인
+    function isCardAnswered(id) {
+      const a = classificationAnswers[id];
+      return !!(a && a.concept && a.heat);
+    }
+
+    // 두 선택지가 모두 채워지면 즉시 정오 여부를 확인해 카드 배경색과 안내 문구를 갱신한다
+    function checkCardAnswer(id) {
+      const card = CARD_DATA.find(c => c.id === id);
+      const cardEl = document.getElementById(`card-${id}`);
+      const fbEl = document.getElementById(`card-feedback-${id}`);
+      if (!isCardAnswered(id)) {
+        cardEl.className = `${CARD_BASE_CLASS} border-gray-200 bg-white`;
+        fbEl.textContent = '';
+        return;
+      }
+      const ans = classificationAnswers[id];
+      const isCorrect = ans.concept === card.concept && ans.heat === card.correct;
+      if (isCorrect) {
+        cardEl.className = `${CARD_BASE_CLASS} border-green-400 bg-green-50`;
+        fbEl.className = 'text-xs font-bold min-h-4 text-green-600';
+        fbEl.textContent = '✅ 정답이에요! 인과 관계를 잘 연결했어요.';
+      } else {
+        cardEl.className = `${CARD_BASE_CLASS} border-red-400 bg-red-50`;
+        fbEl.className = 'text-xs font-bold min-h-4 text-red-600';
+        fbEl.textContent = '❌ 다시 한번 생각해보세요. 상태 변화의 종류와 열에너지 방향을 다시 확인해보세요.';
+      }
+    }
+
+    // --- 시트3: 바이브 코딩(나만의 게임/시뮬레이션 만들기) 로직 ---
+    let lastVibeCode = '';
+
+    function fillVibeIdea(text) {
+      document.getElementById('vibePrompt').value = text;
+      document.getElementById('vibePrompt').focus();
+    }
+
+    // Gemini가 마크다운 코드블록(```html ... ```)으로 감싸서 응답하는 경우가 많아
+    // 실제 HTML 코드만 뽑아낸다. 코드블록이 없다면 응답 전체를 그대로 사용한다.
+    function extractHtmlCode(text) {
+      const fenced = text.match(/```(?:html)?\s*([\s\S]*?)```/i);
+      return (fenced ? fenced[1] : text).trim();
+    }
+
+    function buildVibeCodePrompt(ideaText) {
+      return `당신은 학생들을 위해 교육용 웹 게임을 만드는 프로그래머입니다. 아래는 중학생이 작성한 "열에너지 흡수·방출과 물질의 상태 변화(융해, 기화, 응고, 액화, 승화)"를 주제로 한 게임/시뮬레이션 아이디어입니다.
+
+[학생이 작성한 아이디어]
+${ideaText}
+
+[제작 지침]
+- 위 아이디어를 최대한 반영해서, 순수 HTML+CSS+JavaScript만으로 동작하는 완전한 하나의 HTML 파일을 작성하세요.
+- 외부 CDN, 이미지 URL, 폰트, 라이브러리는 절대 사용하지 마세요. 모든 스타일과 로직은 <style>과 <script> 태그 안에 직접 작성하세요.
+- 이모지(🧊💧♨️ 등)를 활용해 시각적으로 상태 변화를 표현하면 좋습니다.
+- 열에너지 흡수(융해, 기화)와 방출(응고, 액화, 승화)의 과학적 개념이 게임 안에서 올바르게 드러나야 합니다.
+- 반드시 <!doctype html>로 시작해서 </html>로 끝나는 완전한 코드만 출력하세요. 코드 앞뒤에 설명, 인사말, 마크다운 기호를 절대 포함하지 마세요.`;
+    }
+
+    async function callGeminiVibeCode(ideaText) {
+      const apiKey = getGeminiApiKey();
+      if (!apiKey) throw new Error('API_KEY_MISSING');
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: buildVibeCodePrompt(ideaText) }] }],
+          generationConfig: {
+            maxOutputTokens: 8192,
+            thinkingConfig: { thinkingBudget: 0 }
+          }
+        })
+      });
+      let data = null;
+      try { data = await response.json(); } catch (e) { /* 본문이 JSON이 아닐 수 있음 */ }
+      if (!response.ok) {
+        const apiMessage = data?.error?.message;
+        const err = new Error('REQUEST_FAILED');
+        err.detail = apiMessage ? `(HTTP ${response.status}) ${apiMessage}` : `(HTTP ${response.status}) 알 수 없는 오류`;
+        throw err;
+      }
+      if (data?.promptFeedback?.blockReason) {
+        const err = new Error('BLOCKED');
+        err.detail = `요청이 안전 필터에 의해 차단되었습니다 (사유: ${data.promptFeedback.blockReason})`;
+        throw err;
+      }
+      const candidate = data?.candidates?.[0];
+      const text = candidate?.content?.parts?.map(p => p.text || '').join('') || '';
+      if (!text.trim()) {
+        const err = new Error('EMPTY_RESPONSE');
+        err.detail = candidate?.finishReason ? `응답에 내용이 없습니다 (종료 사유: ${candidate.finishReason})` : '응답에 내용이 없습니다.';
+        throw err;
+      }
+      return extractHtmlCode(text);
+    }
+
+    async function generateVibeCode() {
+      const ideaText = document.getElementById('vibePrompt').value.trim();
+      const statusEl = document.getElementById('vibeStatus');
+      const btn = document.getElementById('generateVibeBtn');
+      if (!ideaText) {
+        statusEl.style.color = '#ef4444';
+        statusEl.textContent = '⚠️ 먼저 게임/시뮬레이션 아이디어를 작성해주세요.';
+        return;
+      }
+      statusEl.style.color = '#7c3aed';
+      statusEl.textContent = '✨ AI가 코드를 만들고 있어요... (최대 30초 정도 걸릴 수 있어요)';
+      btn.disabled = true;
+      btn.classList.add('opacity-60');
+      try {
+        const code = await callGeminiVibeCode(ideaText);
+        lastVibeCode = code;
+        document.getElementById('vibePreviewFrame').srcdoc = code;
+        statusEl.style.color = '#16a34a';
+        statusEl.textContent = '✅ 코드가 만들어졌어요! 아래 미리보기에서 실행해보고, 마음에 안 들면 아이디어를 수정한 뒤 다시 만들어보세요.';
+      } catch (e) {
+        if (e.message === 'API_KEY_MISSING') {
+          statusEl.textContent = '⚠️ API 키가 입력되지 않아 요청을 진행할 수 없습니다.';
+        } else {
+          statusEl.textContent = `❌ 코드 생성에 실패했습니다. ${e.detail || ''}`.trim();
+        }
+        statusEl.style.color = '#ef4444';
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-60');
+      }
+    }
+
+    // --- 시트1·2·3 통합 제출 로직 ---
+    async function checkAndSubmitAll() {
+      const fb = document.getElementById('final-submit-feedback');
+      const q1 = document.getElementById('q1').value.trim();
+      const q2 = document.getElementById('q2').value.trim();
+      const q3 = document.getElementById('q3').value.trim();
+      const q4 = document.getElementById('q4').value.trim();
+      const q5 = document.getElementById('q5').value.trim();
+      const vibePrompt = document.getElementById('vibePrompt').value.trim();
+
+      if (!q1 || !q2 || !q3) {
+        fb.style.color = '#ef4444';
+        fb.innerText = '⚠️ 시트1의 실험 확인 질문(1~3번)에 먼저 모두 답해주세요.';
+        switchSheet(1);
+        return;
+      }
+      if (!CARD_DATA.every(c => isCardAnswered(c.id))) {
+        fb.style.color = '#ef4444';
+        fb.innerText = '⚠️ 시트2의 인과 관계 완성 문제를 모두(상태 변화·열에너지 방향) 선택해주세요.';
+        switchSheet(2);
+        return;
+      }
+      if (!q4 || !q5) {
+        fb.style.color = '#ef4444';
+        fb.innerText = '⚠️ 시트2의 서술형 질문(4~5번)에 모두 답해주세요.';
+        switchSheet(2);
+        return;
+      }
+      if (!vibePrompt) {
+        fb.style.color = '#ef4444';
+        fb.innerText = '⚠️ 시트3에 나만의 게임/시뮬레이션 아이디어(프롬프트)를 작성해주세요.';
+        return;
+      }
+
+      // 인과 관계 완성 활동 채점 및 상세 기록 생성 (상태 변화와 열에너지 방향이 모두 맞아야 정답 처리)
+      let correctCount = 0;
+      const detailParts = CARD_DATA.map(c => {
+        const picked = classificationAnswers[c.id] || {};
+        const isCorrect = picked.concept === c.concept && picked.heat === c.correct;
+        if (isCorrect) correctCount++;
+        const heatLabel = picked.heat === 'absorb' ? '흡수' : picked.heat === 'release' ? '방출' : '미선택';
+        return `${c.cause}→${picked.concept || '미선택'}/${heatLabel}${isCorrect ? '✓' : '✗'}`;
+      });
+      const classificationScore = `${correctCount}/${CARD_DATA.length}`;
+      const classificationDetail = detailParts.join(', ');
+
+      const btn = document.getElementById('submitAllBtn');
+      btn.disabled = true;
+      btn.innerText = '제출 중...';
+
+      const res = await window.dataSdk.create({
+        student_number: currentStudentNumber,
+        student_name: currentStudentName,
+        answer_1: q1,
+        answer_2: q2,
+        answer_3: q3,
+        classification_score: classificationScore,
+        classification_detail: classificationDetail,
+        answer_4: q4,
+        answer_5: q5,
+        vibe_prompt: vibePrompt,
+        vibe_code: lastVibeCode,
+        submitted_at: new Date().toISOString()
+      });
+
+      if (res.isOk) {
+        fb.style.color = '#16a34a';
+        fb.innerText = `🎉 제출이 완료되었습니다! (인과관계 완성: ${classificationScore})`;
+        btn.innerText = '제출 완료';
+      } else {
+        fb.style.color = '#ef4444';
+        fb.innerText = '제출에 실패했습니다. 다시 시도해주세요.';
+        btn.disabled = false;
+        btn.innerText = '✅ 시트1·2·3 답변 모두 제출하기';
+      }
+    }
+
+    // --- 실험 및 그래프 로직 ---
     const canvas = document.getElementById('graphCanvas');
     const ctx = canvas.getContext('2d');
     let width, height;
@@ -746,7 +1171,7 @@ window.dataSdk = {
       const particleSpeed = Math.max(1.8, 5.5 - Math.max(0, temp - 100) * 0.12);
       particleModel.style.setProperty('--particle-speed', `${particleSpeed}s`);
       particleModel.style.opacity = time >= 90 && time < 150 ? '1' : '0';
-      
+
       if (time < 20) status.innerText = '❄️ 얼음 (고체)';
       else if (time < 50) status.innerText = '🧊💧 얼음 + 물 (융해 중)';
       else if (time < 90) status.innerText = '💧 물 (액체)';
@@ -769,59 +1194,14 @@ window.dataSdk = {
         else if (time <= 150) temperature = 100 + (time - 130);
         dataPoints.push({ x: time, y: temperature });
         drawGraph(); updateVisuals(temperature);
-        if (time >= 150) { 
-          clearInterval(timer); 
-          document.getElementById('hotplate').classList.add('off'); 
+        if (time >= 150) {
+          clearInterval(timer);
+          document.getElementById('hotplate').classList.add('off');
           document.getElementById('startBtn').disabled = false;
-          document.getElementById('startBtn').classList.replace('bg-gray-400', 'bg-red-500'); 
+          document.getElementById('startBtn').classList.replace('bg-gray-400', 'bg-red-500');
           document.getElementById('startBtn').innerText = '실험 다시하기';
         }
       }, 150); // 배포용 속도 (조절 가능)
-    }
-
-    // --- 4. 정답 제출 로직 ---
-    async function checkAnswers() {
-      const q1 = document.getElementById('q1').value.trim();
-      const q2 = document.getElementById('q2').value.trim();
-      const q3 = document.getElementById('q3').value.trim();
-      const fb = document.getElementById('quiz-feedback');
-      if (!q1 || !q2 || !q3) { fb.style.color = '#ef4444'; fb.innerText = '모든 퀴즈의 답을 서술해주세요!'; return; }
-
-      const btn = document.getElementById('submitQuizBtn');
-      btn.disabled = true;
-      btn.innerText = '제출 중...';
-
-      // Firestore submissions 컬렉션에 데이터를 저장
-      const res = await window.dataSdk.create({
-        student_number: currentStudentNumber,
-        student_name: currentStudentName,
-        answer_1: q1,
-        answer_2: q2,
-        answer_3: q3,
-        submitted_at: new Date().toISOString()
-      });
-
-      btn.disabled = false;
-      btn.innerText = '정답 제출하기';
-
-      if (res.isOk) {
-        // 간단한 키워드 채점 (선생님 참고용)
-        let score = 0;
-        const n = v => v.replace(/\s/g, '').toLowerCase();
-        // Q1: 온도가 일정한 구간(0°C, 100°C)을 언급했는지 확인
-        const mentions0 = /0\s*(도|°|℃)/.test(q1);
-        const mentions100 = /100\s*(도|°|℃)/.test(q1);
-        if (mentions0 && mentions100) score++;
-        if (n(q2).includes('상태변화') || n(q2).includes('상태')) score++;
-        // Q3: 열에너지가 상태 변화(분자 간 인력/배열 변화)에 쓰인다는 내용을 언급했는지 확인
-        const n3 = n(q3);
-        if (n3.includes('상태변화') || n3.includes('분자') || n3.includes('인력') || n3.includes('결합') || n3.includes('배열')) score++;
-        
-        if (score === 3) { fb.style.color = '#16a34a'; fb.innerText = '🎉 완벽해요! 선생님께 제출이 완료되었습니다.'; }
-        else { fb.style.color = '#ea580c'; fb.innerText = `👍 제출이 완료되었습니다! (키워드 매칭: ${score}/3)`; }
-      } else {
-        fb.style.color = '#ef4444'; fb.innerText = '제출에 실패했습니다. 다시 시도해주세요.';
-      }
     }
   </script>
 </body>
