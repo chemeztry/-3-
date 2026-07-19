@@ -62,7 +62,12 @@
         <label class="font-bold mb-1 block" for="studentName">이름</label>
         <input id="studentName" type="text" autocomplete="name" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="홍길동">
       </div>
-      <button type="submit" class="w-full py-3 rounded-lg font-medium text-lg transition bg-blue-600 text-white hover:bg-blue-700">입장하기</button>
+      <div>
+        <label class="font-bold mb-1 block" for="studentPassword">비밀번호 (숫자 4자리)</label>
+        <input id="studentPassword" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="숫자 4자리 (예: 1234)">
+        <p class="text-xs text-gray-400 mt-1">⚠️ 숫자 4자리로 입력해주세요. 처음 입장할 때 설정한 비밀번호는 이후에 바꿀 수 없어요. 다음에 입장할 때도 똑같이 입력해야 하니 잘 기억해두세요!</p>
+      </div>
+      <button type="submit" id="entrySubmitBtn" class="w-full py-3 rounded-lg font-medium text-lg transition bg-blue-600 text-white hover:bg-blue-700">입장하기</button>
       <p id="entry-feedback" class="text-red-600 text-sm text-center min-h-5" aria-live="polite"></p>
     </form>
     <div class="mt-4 text-center">
@@ -94,9 +99,10 @@
 
     <!-- 시트 탭 네비게이션 -->
     <div class="flex gap-2 mb-6" role="tablist">
-      <button type="button" id="tabBtn1" role="tab" aria-selected="true" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-blue-600 text-white" onclick="switchSheet(1)">📄 시트1. 실험 시뮬레이션</button>
-      <button type="button" id="tabBtn2" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="switchSheet(2)">📄 시트2. 실생활 탐구</button>
-      <button type="button" id="tabBtn3" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="switchSheet(3)">📄 시트3. 나만의 게임</button>
+      <button type="button" id="tabBtn1" role="tab" aria-selected="true" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-blue-600 text-white" onclick="attemptSwitchSheet(1)">📄 시트1. 실험 시뮬레이션</button>
+      <button type="button" id="tabBtn2" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="attemptSwitchSheet(2)">📄 시트2. 실생활 탐구</button>
+      <button type="button" id="tabBtn3" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="attemptSwitchSheet(3)">📄 시트3. 나만의 게임</button>
+      <button type="button" id="tabBtn4" role="tab" aria-selected="false" class="tab-btn flex-1 py-3 rounded-lg font-bold text-xs sm:text-base bg-gray-100 text-gray-600" onclick="attemptSwitchSheet(4)">📄 시트4. AI 피드백</button>
     </div>
 
     <!-- ===== 시트1: 실험 시뮬레이션 ===== -->
@@ -143,7 +149,8 @@
             <input id="q3" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
           </div>
         </div>
-        <button type="button" class="w-full py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition" onclick="goToSheet2()">다음: 시트2. 실생활 탐구 활동 ▶</button>
+        <button type="button" id="toSheet2Btn" class="w-full py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-600" onclick="attemptSwitchSheet(2)">다음: 시트2. 실생활 탐구 활동 ▶</button>
+        <p id="sheet1LockHint" class="text-xs text-center text-amber-600 font-medium mt-2 min-h-4"></p>
       </div>
     </div>
 
@@ -177,10 +184,8 @@
         </div>
       </div>
 
-      <div class="flex gap-2">
-        <button type="button" class="px-5 py-3 rounded-lg font-bold bg-gray-100 hover:bg-gray-200" onclick="switchSheet(1)">◀ 이전: 시트1</button>
-        <button type="button" class="flex-1 py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition" onclick="switchSheet(3)">다음: 시트3. 나만의 게임 만들기 ▶</button>
-      </div>
+      <button type="button" id="toSheet3Btn" class="w-full py-3 rounded-lg font-bold text-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-blue-600" onclick="attemptSwitchSheet(3)">다음: 시트3. 나만의 게임 만들기 ▶</button>
+      <p id="sheet2LockHint" class="text-xs text-center text-amber-600 font-medium mt-2 min-h-4"></p>
     </div>
 
     <!-- ===== 시트3: 나만의 게임/시뮬레이션 만들기 (바이브 코딩) ===== -->
@@ -212,11 +217,31 @@
         <iframe id="vibePreviewFrame" class="w-full rounded-lg border border-gray-200 bg-white" style="height: 420px;" sandbox="allow-scripts" title="학생이 만든 게임 미리보기"></iframe>
       </div>
 
-      <div class="flex gap-2">
-        <button type="button" class="px-5 py-3 rounded-lg font-bold bg-gray-100 hover:bg-gray-200" onclick="switchSheet(2)">◀ 이전: 시트2</button>
-        <button id="submitAllBtn" type="button" class="flex-1 py-3 rounded-lg font-bold text-lg bg-green-600 text-white hover:bg-green-700 transition" onclick="checkAndSubmitAll()">✅ 시트1·2·3 답변 모두 제출하기</button>
-      </div>
+      <button id="submitAllBtn" type="button" class="w-full py-3 rounded-lg font-bold text-lg bg-green-600 text-white hover:bg-green-700 transition" onclick="checkAndSubmitAll()">✅ 시트1·2·3 답변 모두 제출하기</button>
       <div id="final-submit-feedback" class="mt-4 font-bold text-center text-lg" aria-live="polite"></div>
+      <button type="button" id="toSheet4Btn" class="w-full mt-3 py-3 rounded-lg font-bold text-lg bg-violet-600 text-white hover:bg-violet-700 transition hidden" onclick="attemptSwitchSheet(4)">🤖 다음: 시트4. AI 피드백 받으러 가기 ▶</button>
+    </div>
+
+    <!-- ===== 시트4: AI 피드백 받기 ===== -->
+    <div id="sheet4Content" class="hidden">
+      <div class="rounded-xl p-5 border-2 border-indigo-200 bg-indigo-50/40 mb-6">
+        <div class="font-bold text-lg mb-2 text-indigo-800">🤖 나의 학습에 대한 AI 피드백 받기</div>
+        <p class="text-sm text-gray-700 leading-relaxed">제출한 시트1~3의 답변을 바탕으로, AI가 잘한 점과 보완할 점, 더 생각해보면 좋을 점을 정리해줍니다. 아래 버튼을 눌러 나만의 피드백을 받아보세요.</p>
+      </div>
+
+      <div class="rounded-xl p-5 border-2 border-indigo-200 bg-white mb-6">
+        <button type="button" id="studentAiFeedbackBtn" class="w-full py-3 rounded-lg font-bold text-lg bg-indigo-600 text-white hover:bg-indigo-700 transition" onclick="requestStudentAiFeedback()">✨ 나의 AI 피드백 받기</button>
+        <div class="rounded-lg border border-gray-200 bg-slate-50 p-1 mt-4">
+          <textarea id="studentAiFeedbackText" class="w-full h-56 p-3 rounded-lg border-0 bg-transparent resize-none focus:outline-none focus:ring-2 focus:ring-indigo-300 text-sm leading-relaxed" placeholder="위 버튼을 누르면 이곳에 AI 피드백이 나타나요." readonly></textarea>
+        </div>
+        <p id="studentAiFeedbackError" class="text-red-600 text-sm min-h-5 mt-2" aria-live="polite"></p>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button type="button" id="studentAiFeedbackRegenerateBtn" class="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200" onclick="regenerateStudentAiFeedback()">🔄 다시 생성</button>
+          <button type="button" class="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 hover:bg-gray-200" onclick="copyStudentAiFeedback()">📋 복사하기</button>
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-gray-400">🎉 마지막 시트예요. 수고했어요!</p>
     </div>
   </main>
 
@@ -253,6 +278,27 @@
       <div class="font-bold text-gray-700 mb-3 text-sm">📚 반별 제출 현황</div>
       <div id="classBreakdownGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3"></div>
     </div>
+
+    <div class="rounded-xl p-4 mb-5 border border-gray-200 bg-white">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-bold text-gray-700 text-sm">🔑 학생 계정 관리 (비밀번호는 확인할 수 없으며, 초기화만 가능합니다)</div>
+      </div>
+      <div class="overflow-x-auto rounded-lg border border-gray-200" style="max-height: 220px; overflow-y: auto;">
+        <table class="dash-table w-full">
+          <thead>
+            <tr>
+              <th>학번</th>
+              <th>이름</th>
+              <th>비밀번호 설정 시각</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody id="studentAccountsBody"></tbody>
+        </table>
+      </div>
+      <p id="emptyStudentAccounts" class="text-center py-6 text-gray-400 text-sm hidden">아직 비밀번호를 설정한 학생이 없습니다.</p>
+    </div>
+
     <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-inner" style="max-height: 480px; overflow-y: auto;">
       <table class="dash-table w-full">
         <thead>
@@ -342,56 +388,71 @@ if (typeof firebase !== 'undefined') {
 }
 
 // firebase 로드 실패 시를 대비한 임시 메모리 저장소 (배포 환경에서는 사용되지 않음)
-const memoryFallback = { records: [], listeners: [] };
+// 여러 컬렉션(submissions, students)에서 공통으로 쓸 수 있도록 팩토리 함수로 만든다.
+function createCollectionSdk(collectionName) {
+  const memoryFallback = { records: [], listeners: [] };
+  return {
+    init: async function(handler) {
+      if (firebaseReady) {
+        db.collection(collectionName).onSnapshot((snapshot) => {
+          // 삭제 기능을 위해 각 레코드에 Firestore 문서 ID(_id)를 함께 담아 전달
+          const data = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+          handler.onDataChanged(data);
+        });
+      } else {
+        // 메모리 폴백: 현재까지 저장된 데이터로 즉시 콜백 실행
+        memoryFallback.listeners.push(handler);
+        handler.onDataChanged(memoryFallback.records);
+      }
+      return { isOk: true };
+    },
+    create: async function(record) {
+      if (firebaseReady) {
+        try {
+          await db.collection(collectionName).add(record);
+          return { isOk: true };
+        } catch (e) {
+          // Firestore 보안 규칙에 해당 컬렉션에 대한 쓰기 허용이 없으면 여기서 실패한다.
+          // (예: "students" 컬렉션을 새로 추가했는데 규칙에는 "submissions"만 허용된 경우 등)
+          console.error(`[${collectionName}] 쓰기 실패:`, e);
+          return { isOk: false, error: e.message || String(e) };
+        }
+      } else {
+        // 메모리 폴백용 임시 id 부여
+        const withId = { ...record, _id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2) };
+        memoryFallback.records.push(withId);
+        memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
+        return { isOk: true };
+      }
+    },
+    remove: async function(id) {
+      if (firebaseReady) {
+        try {
+          await db.collection(collectionName).doc(id).delete();
+          return { isOk: true };
+        } catch (e) {
+          console.error(`[${collectionName}] 삭제 실패:`, e);
+          return { isOk: false, error: e.message || String(e) };
+        }
+      } else {
+        memoryFallback.records = memoryFallback.records.filter(r => r._id !== id);
+        memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
+        return { isOk: true };
+      }
+    }
+  };
+}
 
-window.dataSdk = {
-  init: async function(handler) {
-    if (firebaseReady) {
-      db.collection("submissions").onSnapshot((snapshot) => {
-        // 삭제 기능을 위해 각 레코드에 Firestore 문서 ID(_id)를 함께 담아 전달
-        const data = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
-        handler.onDataChanged(data);
-      });
-    } else {
-      // 메모리 폴백: 현재까지 저장된 데이터로 즉시 콜백 실행
-      memoryFallback.listeners.push(handler);
-      handler.onDataChanged(memoryFallback.records);
-    }
-    return { isOk: true };
-  },
-  create: async function(record) {
-    if (firebaseReady) {
-      try {
-        await db.collection("submissions").add(record);
-        return { isOk: true };
-      } catch (e) {
-        console.error(e);
-        return { isOk: false };
-      }
-    } else {
-      // 메모리 폴백용 임시 id 부여
-      const withId = { ...record, _id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2) };
-      memoryFallback.records.push(withId);
-      memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
-      return { isOk: true };
-    }
-  },
-  remove: async function(id) {
-    if (firebaseReady) {
-      try {
-        await db.collection("submissions").doc(id).delete();
-        return { isOk: true };
-      } catch (e) {
-        console.error(e);
-        return { isOk: false };
-      }
-    } else {
-      memoryFallback.records = memoryFallback.records.filter(r => r._id !== id);
-      memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
-      return { isOk: true };
-    }
-  }
-};
+window.dataSdk = createCollectionSdk('submissions');
+// 학생별 최초 설정 비밀번호를 저장하는 별도 컬렉션 (한 번 설정하면 학생 스스로는 바꿀 수 없음)
+// ⚠️ 주의: Firestore 보안 규칙(Firebase 콘솔 > Firestore Database > 규칙)에
+// "submissions" 컬렉션만 허용되어 있다면 이 "students" 컬렉션 쓰기가 "계정 생성에 실패했습니다"
+// 오류로 실패한다. 아래와 같이 students 컬렉션도 함께 허용해야 한다.
+//   match /databases/{database}/documents {
+//     match /submissions/{docId} { allow read, write: if true; }
+//     match /students/{docId}    { allow read, write: if true; }
+//   }
+window.studentSdk = createCollectionSdk('students');
 
     let allRecords = [];
     const TEACHER_ACCESS_CODE = '0406';
@@ -418,6 +479,17 @@ window.dataSdk = {
         // 교사 대시보드가 이미 열려있는 상태라면 화면도 즉시 갱신
         if (!document.getElementById('dashboardScreen').classList.contains('hidden')) {
           renderDashboard();
+        }
+      }
+    });
+
+    // 학생 계정(학번별 최초 설정 비밀번호) 실시간 구독
+    let studentAccounts = [];
+    window.studentSdk.init({
+      onDataChanged: function(data) {
+        studentAccounts = data;
+        if (!document.getElementById('dashboardScreen').classList.contains('hidden')) {
+          renderStudentAccounts();
         }
       }
     });
@@ -497,6 +569,40 @@ window.dataSdk = {
       });
       tbody.innerHTML = '';
       tbody.appendChild(fragment);
+    }
+
+    // 학생 계정(비밀번호 설정) 목록 렌더링 - 비밀번호 자체는 해시값만 저장되어 있어 교사도 확인할 수 없고, 초기화(삭제)만 가능하다
+    function renderStudentAccounts() {
+      const tbody = document.getElementById('studentAccountsBody');
+      const empty = document.getElementById('emptyStudentAccounts');
+      if (!tbody) return;
+      if (!studentAccounts.length) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      const sorted = [...studentAccounts].sort((a, b) => (a.student_number || '').localeCompare(b.student_number || '', 'ko'));
+      tbody.innerHTML = sorted.map(s => {
+        const time = s.created_at ? new Date(s.created_at).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+        return `<tr>
+          <td class="font-medium">${esc(s.student_number)}</td>
+          <td class="font-medium">${esc(s.student_name)}</td>
+          <td class="text-gray-400 text-xs">${time}</td>
+          <td><button type="button" class="px-3 py-1.5 rounded-md text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 whitespace-nowrap" onclick="resetStudentPassword('${esc(s._id)}', '${esc(s.student_name)}')">🔄 비밀번호 초기화</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    // 학생이 비밀번호를 잊어버린 경우, 교사가 계정 자체를 삭제해 다음 입장 시 새 비밀번호를 설정하게 해준다
+    async function resetStudentPassword(id, name) {
+      if (!id) return;
+      const ok = confirm(`${name} 학생의 비밀번호를 초기화할까요?\n초기화 후에는 다음 입장 시 새 비밀번호를 다시 설정하게 됩니다.`);
+      if (!ok) return;
+      const res = await window.studentSdk.remove(id);
+      if (!res.isOk) {
+        alert('초기화에 실패했습니다. 다시 시도해주세요.');
+      }
     }
 
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
@@ -730,6 +836,63 @@ ${record.vibe_prompt || '(작성 없음)'}
       }
     }
 
+    // --- 시트4: 학생이 직접 받아보는 AI 피드백 (교사용 callGeminiFeedback/buildFeedbackPrompt를 그대로 재사용) ---
+    async function runStudentAiFeedback(record) {
+      const textarea = document.getElementById('studentAiFeedbackText');
+      const errorEl = document.getElementById('studentAiFeedbackError');
+      const askBtn = document.getElementById('studentAiFeedbackBtn');
+      const regenBtn = document.getElementById('studentAiFeedbackRegenerateBtn');
+      errorEl.textContent = '';
+      textarea.value = '';
+      textarea.placeholder = 'AI가 피드백을 작성 중입니다...';
+      askBtn.disabled = true;
+      regenBtn.disabled = true;
+      askBtn.textContent = '✨ 생성 중...';
+      try {
+        const feedback = await callGeminiFeedback(record);
+        textarea.value = feedback;
+      } catch (e) {
+        if (e.message === 'API_KEY_MISSING') {
+          errorEl.textContent = 'API 키가 입력되지 않아 요청을 진행할 수 없습니다. (선생님께 문의해주세요)';
+        } else {
+          errorEl.textContent = `피드백 생성에 실패했습니다. ${e.detail || ''}`.trim();
+        }
+        textarea.placeholder = '생성에 실패했습니다. 다시 시도해보세요.';
+      } finally {
+        askBtn.disabled = false;
+        regenBtn.disabled = false;
+        askBtn.textContent = '✨ 나의 AI 피드백 받기';
+      }
+    }
+
+    function requestStudentAiFeedback() {
+      if (!lastSubmittedRecord) {
+        document.getElementById('studentAiFeedbackError').textContent = '먼저 시트1~3을 모두 작성하고 제출해주세요.';
+        return;
+      }
+      runStudentAiFeedback(lastSubmittedRecord);
+    }
+
+    function regenerateStudentAiFeedback() {
+      if (!lastSubmittedRecord) return;
+      runStudentAiFeedback(lastSubmittedRecord);
+    }
+
+    async function copyStudentAiFeedback() {
+      const textarea = document.getElementById('studentAiFeedbackText');
+      if (!textarea.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(textarea.value);
+        const errorEl = document.getElementById('studentAiFeedbackError');
+        errorEl.style.color = '#16a34a';
+        errorEl.textContent = '클립보드에 복사되었습니다.';
+        setTimeout(() => { errorEl.textContent = ''; errorEl.style.color = ''; }, 2000);
+      } catch (e) {
+        textarea.select();
+        alert('클립보드 복사에 실패했습니다. 텍스트를 직접 선택해 복사해주세요.');
+      }
+    }
+
     // 학생이 시트3에서 만든 게임 코드를 교사가 실행해볼 수 있도록 모달에 띄운다
     function openVibeCodeViewer(id) {
       const record = allRecords.find(r => String(r._id) === String(id));
@@ -785,6 +948,7 @@ ${record.vibe_prompt || '(작성 없음)'}
       document.getElementById('appScreen').classList.add('hidden');
       document.getElementById('dashboardScreen').classList.remove('hidden');
       renderDashboard();
+      renderStudentAccounts();
     }
     function hideDashboard() {
       document.getElementById('dashboardScreen').classList.add('hidden');
@@ -817,37 +981,118 @@ ${record.vibe_prompt || '(작성 없음)'}
       document.getElementById('generateVibeBtn').disabled = false;
       document.getElementById('generateVibeBtn').textContent = '✨ 코드로 만들기';
       lastVibeCode = '';
+      lastSubmittedRecord = null;
+      document.getElementById('toSheet4Btn').classList.add('hidden');
+      document.getElementById('studentAiFeedbackText').value = '';
+      document.getElementById('studentAiFeedbackError').textContent = '';
+      const studentAiBtn = document.getElementById('studentAiFeedbackBtn');
+      studentAiBtn.disabled = false;
+      studentAiBtn.textContent = '✨ 나의 AI 피드백 받기';
       switchSheet(1);
     }
 
+    // 실험 확인 질문(1~3번)과 서술형 질문(4~5번)에 입력할 때마다 잠금 상태를 실시간으로 갱신한다
+    ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateTabLockState);
+    });
+
     // 학생 입장 처리
-    document.getElementById('entryForm').addEventListener('submit', (e) => {
+    // 비밀번호는 평문으로 저장하지 않고 해시값만 저장한다 (SubtleCrypto를 쓸 수 없는 환경을 위한 단순 폴백 포함)
+    async function hashPassword(pw) {
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const enc = new TextEncoder().encode(pw);
+          const digestBuffer = await window.crypto.subtle.digest('SHA-256', enc);
+          return Array.from(new Uint8Array(digestBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {
+        console.warn('SubtleCrypto를 사용할 수 없어 단순 해시로 대체합니다.', e);
+      }
+      let hash = 0;
+      for (let i = 0; i < pw.length; i++) {
+        hash = ((hash << 5) - hash + pw.charCodeAt(i)) | 0;
+      }
+      return 'fallback_' + hash.toString(16);
+    }
+
+    document.getElementById('entryForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const num = document.getElementById('studentNumber').value.trim();
       const name = document.getElementById('studentName').value.trim();
-      if (!num || !name) { document.getElementById('entry-feedback').textContent = '학번과 이름을 모두 입력해주세요.'; return; }
-      currentStudentNumber = num;
-      currentStudentName = name;
-      document.getElementById('entry-feedback').textContent = '';
-      document.getElementById('entryScreen').classList.add('hidden');
-      document.getElementById('appScreen').classList.remove('hidden');
+      const password = document.getElementById('studentPassword').value;
+      const feedbackEl = document.getElementById('entry-feedback');
+      const submitBtn = document.getElementById('entrySubmitBtn');
+      feedbackEl.textContent = '';
 
-      // 상태 초기화
-      time = 0;
-      temperature = -20;
-      dataPoints = [];
-      updateVisuals(temperature);
-      drawGraph();
-      resetSheetsState();
-      requestAnimationFrame(resize);
+      if (!num || !name || !password) {
+        feedbackEl.textContent = '학번, 이름, 비밀번호를 모두 입력해주세요.';
+        return;
+      }
+      if (!/^\d{4}$/.test(password)) {
+        feedbackEl.textContent = '비밀번호는 숫자 4자리로 입력해주세요. (예: 1234)';
+        document.getElementById('studentPassword').focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '확인 중...';
+
+      try {
+        const passwordHash = await hashPassword(password);
+        // 이미 비밀번호를 설정한 학번인지 확인 (설정했다면 학생 스스로는 바꿀 수 없고, 입력한 비밀번호가 맞아야만 입장 가능)
+        const existing = studentAccounts.find(s => String(s.student_number || '').trim() === num);
+
+        if (existing) {
+          if (existing.password_hash !== passwordHash) {
+            feedbackEl.textContent = '비밀번호가 올바르지 않습니다. 처음 입장할 때 설정한 비밀번호를 입력해주세요.';
+            return;
+          }
+        } else {
+          // 처음 입장하는 학번 → 지금 입력한 비밀번호를 최초 비밀번호로 설정하고 저장
+          const res = await window.studentSdk.create({
+            student_number: num,
+            student_name: name,
+            password_hash: passwordHash,
+            created_at: new Date().toISOString()
+          });
+          if (!res.isOk) {
+            // Firestore 오류 메시지를 그대로 보여줘서 원인(대부분 보안 규칙에 students 컬렉션이
+            // 허용되어 있지 않은 경우)을 바로 파악할 수 있게 한다.
+            feedbackEl.textContent = `계정 생성에 실패했습니다.${res.error ? ' (' + res.error + ')' : ''} 선생님께 문의해주세요.`;
+            return;
+          }
+        }
+
+        currentStudentNumber = num;
+        currentStudentName = name;
+        document.getElementById('entryScreen').classList.add('hidden');
+        document.getElementById('appScreen').classList.remove('hidden');
+
+        // 상태 초기화
+        time = 0;
+        temperature = -20;
+        dataPoints = [];
+        updateVisuals(temperature);
+        drawGraph();
+        resetSheetsState();
+        requestAnimationFrame(resize);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '입장하기';
+      }
     });
 
     // --- 시트 탭 전환 로직 ---
+    // 한 번 다음 시트로 넘어가면 이전 시트로는 돌아갈 수 없으므로, 지금 보고 있는 시트 번호를 기록해둔다.
+    let currentSheet = 1;
+
     function switchSheet(n) {
+      currentSheet = n;
       document.getElementById('sheet1Content').classList.toggle('hidden', n !== 1);
       document.getElementById('sheet2Content').classList.toggle('hidden', n !== 2);
       document.getElementById('sheet3Content').classList.toggle('hidden', n !== 3);
-      [1, 2, 3].forEach(i => {
+      document.getElementById('sheet4Content').classList.toggle('hidden', n !== 4);
+      [1, 2, 3, 4].forEach(i => {
         const tab = document.getElementById(`tabBtn${i}`);
         tab.classList.toggle('bg-blue-600', n === i);
         tab.classList.toggle('text-white', n === i);
@@ -855,9 +1100,77 @@ ${record.vibe_prompt || '(작성 없음)'}
         tab.classList.toggle('text-gray-600', n !== i);
         tab.setAttribute('aria-selected', n === i);
       });
+      updateTabLockState();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    function goToSheet2() { switchSheet(2); }
+    // --- 시트별 완료 여부 확인 및 이동 제한 로직 ---
+    function isSheet1Complete() {
+      const q1 = document.getElementById('q1').value.trim();
+      const q2 = document.getElementById('q2').value.trim();
+      const q3 = document.getElementById('q3').value.trim();
+      return !!(q1 && q2 && q3);
+    }
+
+    function isSheet2Complete() {
+      const allCardsAnswered = CARD_DATA.every(c => isCardAnswered(c.id));
+      const q4 = document.getElementById('q4').value.trim();
+      const q5 = document.getElementById('q5').value.trim();
+      return allCardsAnswered && !!q4 && !!q5;
+    }
+
+    // 잠금 상태에 맞게 탭/다음 버튼을 비활성화하고, 안내 문구를 갱신한다
+    // 지나간 시트(i < currentSheet)는 완료 여부와 관계없이 항상 잠근다 (뒤로 이동 금지).
+    function updateTabLockState() {
+      const sheet1Done = isSheet1Complete();
+      const sheet2Done = isSheet2Complete();
+      const sheet4Ready = !!lastSubmittedRecord;
+
+      const unlockedByProgress = { 1: true, 2: sheet1Done, 3: sheet1Done && sheet2Done, 4: sheet4Ready };
+
+      [1, 2, 3, 4].forEach(i => {
+        const tab = document.getElementById(`tabBtn${i}`);
+        const locked = (i < currentSheet) || !unlockedByProgress[i];
+        tab.disabled = locked;
+        tab.classList.toggle('opacity-50', locked);
+        tab.classList.toggle('cursor-not-allowed', locked);
+      });
+
+      const toSheet2Btn = document.getElementById('toSheet2Btn');
+      const toSheet3Btn = document.getElementById('toSheet3Btn');
+      const toSheet4Btn = document.getElementById('toSheet4Btn');
+      const sheet1Hint = document.getElementById('sheet1LockHint');
+      const sheet2Hint = document.getElementById('sheet2LockHint');
+
+      toSheet2Btn.disabled = !sheet1Done;
+      sheet1Hint.textContent = sheet1Done ? '' : '🔒 위 실험 확인 질문(1~3번)을 모두 작성해야 다음 시트로 이동할 수 있어요.';
+
+      const sheet3Unlocked = sheet1Done && sheet2Done;
+      toSheet3Btn.disabled = !sheet3Unlocked;
+      sheet2Hint.textContent = sheet3Unlocked ? '' : '🔒 위 인과 관계 완성 문제와 서술형 질문(4~5번)을 모두 작성해야 다음 시트로 이동할 수 있어요.';
+
+      toSheet4Btn.classList.toggle('hidden', !sheet4Ready);
+    }
+
+    // 탭 클릭·다음 버튼 클릭을 모두 이 함수로 통일한다.
+    // 1) 이미 지나온 시트로는 절대 돌아갈 수 없고, 2) 뒤 시트는 앞 시트가 완료되어야 열린다.
+    function attemptSwitchSheet(n) {
+      if (n < currentSheet) {
+        return;
+      }
+      if (n >= 2 && !isSheet1Complete()) {
+        switchSheet(1);
+        return;
+      }
+      if (n >= 3 && !isSheet2Complete()) {
+        switchSheet(2);
+        return;
+      }
+      if (n >= 4 && !lastSubmittedRecord) {
+        switchSheet(3);
+        return;
+      }
+      switchSheet(n);
+    }
 
     // --- 시트2: 실생활 인과 관계 완성 활동 데이터 및 로직 ---
     // cause: 관찰되는 원인 상황 / effect: 그 결과 관찰되는 현상 / subject: 상태 변화의 주어가 되는 물질
@@ -910,6 +1223,7 @@ ${record.vibe_prompt || '(작성 없음)'}
       select.classList.toggle('border-violet-400', !!value);
       select.classList.toggle('bg-violet-50', !!value);
       checkCardAnswer(id);
+      updateTabLockState();
     }
 
     // 카드 하나가 완전히 답변되었는지(상태 변화 + 열에너지 방향 모두 선택) 확인
@@ -943,6 +1257,8 @@ ${record.vibe_prompt || '(작성 없음)'}
 
     // --- 시트3: 바이브 코딩(나만의 게임/시뮬레이션 만들기) 로직 ---
     let lastVibeCode = '';
+    // 최종 제출이 성공하면 그때 제출한 답안을 그대로 담아두어, 시트4의 AI 피드백 생성에 재사용한다
+    let lastSubmittedRecord = null;
 
     function fillVibeIdea(text) {
       document.getElementById('vibePrompt').value = text;
@@ -1090,7 +1406,7 @@ ${ideaText}
       btn.disabled = true;
       btn.innerText = '제출 중...';
 
-      const res = await window.dataSdk.create({
+      const record = {
         student_number: currentStudentNumber,
         student_name: currentStudentName,
         answer_1: q1,
@@ -1103,11 +1419,15 @@ ${ideaText}
         vibe_prompt: vibePrompt,
         vibe_code: lastVibeCode,
         submitted_at: new Date().toISOString()
-      });
+      };
+      const res = await window.dataSdk.create(record);
 
       if (res.isOk) {
+        // 시트4(AI 피드백)에서 방금 제출한 답안을 그대로 사용할 수 있도록 저장해둔다
+        lastSubmittedRecord = record;
+        updateTabLockState();
         fb.style.color = '#16a34a';
-        fb.innerText = `🎉 제출이 완료되었습니다! (인과관계 완성: ${classificationScore})`;
+        fb.innerText = `🎉 제출이 완료되었습니다! (인과관계 완성: ${classificationScore}) 아래 버튼을 눌러 AI 피드백도 받아보세요.`;
         btn.innerText = '제출 완료';
       } else {
         fb.style.color = '#ef4444';
