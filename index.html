@@ -54,7 +54,7 @@
     <form id="entryForm" class="space-y-4">
       <div>
         <label class="font-bold mb-1 block" for="studentNumber">학번</label> 
-        <input id="studentNumber" type="text" inputmode="numeric" autocomplete="off" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="예: 30101">
+        <input id="studentNumber" type="text" inputmode="numeric" autocomplete="off" required class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" placeholder="예: 10101">
       </div>
       <div>
         <label class="font-bold mb-1 block" for="studentName">이름</label> 
@@ -119,16 +119,16 @@
       <div class="font-bold text-lg mb-4 text-green-800">📝 실험 확인 퀴즈</div>
       <div class="space-y-4 mb-5">
         <div>
-          <label class="font-bold mb-1 block text-gray-700" for="q1">1. 상태 변화가 일어날 때 온도는 어떻게 되나요?</label> 
-          <input id="q1" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요 (예: 일정하게 유지된다)">
+          <label class="font-bold mb-1 block text-gray-700" for="q1">1. 그래프에서 온도가 일정한 구간이 있나요? 몇 도인가요?</label> 
+          <input id="q1" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
         </div>
         <div>
           <label class="font-bold mb-1 block text-gray-700" for="q2">2. 가열 곡선에서 온도가 일정하게 유지되는 구간에서는 어떤 변화가 일어나고 있나요?</label> 
           <input id="q2" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
         </div>
         <div>
-          <label class="font-bold mb-1 block text-gray-700" for="q3">3. 물이 끓을 때(100°C) 물의 상태는 어떻게 변하나요?</label> 
-          <input id="q3" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요 (예: 액체에서 기체로)">
+          <label class="font-bold mb-1 block text-gray-700" for="q3">3. 상태 변화가 일어날 때 열에너지는 어디에 사용되나요?</label> 
+          <input id="q3" type="text" class="w-full p-2 rounded border border-gray-300 focus:ring-2 focus:ring-green-400" placeholder="답을 서술해 보세요">
         </div>
       </div>
       <button id="submitQuizBtn" class="w-full py-3 rounded-lg font-bold text-lg bg-green-600 text-white hover:bg-green-700 transition" onclick="checkAnswers()">정답 제출하기</button>
@@ -156,8 +156,9 @@
             <th>이름</th>
             <th>Q1. 온도 변화</th>
             <th>Q2. 일정 유지 구간</th>
-            <th>Q3. 끓을 때 상태</th>
+            <th>Q3. 열에너지 사용처</th>
             <th>제출 시간</th>
+            <th>관리</th>
           </tr>
         </thead>
         <tbody id="dashboardBody"></tbody>
@@ -178,24 +179,73 @@ const firebaseConfig = {
   measurementId: "G-VXXJZZN4SH"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// firebase SDK가 정상적으로 로드되었는지 확인 (미리보기/샌드박스 환경에서는
+// 외부 CDN(gstatic.com)이 차단되어 firebase가 undefined일 수 있음).
+// 이 체크가 없으면 firebase.initializeApp(...)에서 ReferenceError가 발생해
+// 스크립트 전체가 멈추고, 이후의 모든 addEventListener 등록도 실행되지 않는다.
+let db = null;
+let firebaseReady = false;
+
+if (typeof firebase !== 'undefined') {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseReady = true;
+  } catch (e) {
+    console.error('Firebase 초기화 실패:', e);
+  }
+} else {
+  console.warn('[알림] firebase SDK를 불러오지 못했습니다. gstatic.com 접근이 차단된 환경(미리보기 등)일 수 있습니다. 실제 배포(GitHub Pages 등) 환경에서는 정상 작동합니다. 지금은 임시 메모리 저장소로 동작합니다.');
+}
+
+// firebase 로드 실패 시를 대비한 임시 메모리 저장소 (배포 환경에서는 사용되지 않음)
+const memoryFallback = { records: [], listeners: [] };
 
 window.dataSdk = {
   init: async function(handler) {
-    db.collection("submissions").onSnapshot((snapshot) => {
-      const data = snapshot.docs.map(doc => doc.data());
-      handler.onDataChanged(data);
-    });
+    if (firebaseReady) {
+      db.collection("submissions").onSnapshot((snapshot) => {
+        // 삭제 기능을 위해 각 레코드에 Firestore 문서 ID(_id)를 함께 담아 전달
+        const data = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+        handler.onDataChanged(data);
+      });
+    } else {
+      // 메모리 폴백: 현재까지 저장된 데이터로 즉시 콜백 실행
+      memoryFallback.listeners.push(handler);
+      handler.onDataChanged(memoryFallback.records);
+    }
     return { isOk: true };
   },
   create: async function(record) {
-    try {
-      await db.collection("submissions").add(record);
+    if (firebaseReady) {
+      try {
+        await db.collection("submissions").add(record);
+        return { isOk: true };
+      } catch (e) {
+        console.error(e);
+        return { isOk: false };
+      }
+    } else {
+      // 메모리 폴백용 임시 id 부여
+      const withId = { ...record, _id: 'local_' + Date.now() + '_' + Math.random().toString(36).slice(2) };
+      memoryFallback.records.push(withId);
+      memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
       return { isOk: true };
-    } catch (e) {
-      console.error(e);
-      return { isOk: false };
+    }
+  },
+  remove: async function(id) {
+    if (firebaseReady) {
+      try {
+        await db.collection("submissions").doc(id).delete();
+        return { isOk: true };
+      } catch (e) {
+        console.error(e);
+        return { isOk: false };
+      }
+    } else {
+      memoryFallback.records = memoryFallback.records.filter(r => r._id !== id);
+      memoryFallback.listeners.forEach(h => h.onDataChanged(memoryFallback.records));
+      return { isOk: true };
     }
   }
 };
@@ -203,15 +253,17 @@ window.dataSdk = {
     let allRecords = [];
     const TEACHER_ACCESS_CODE = '0406';
 
-window.dataSdk.init({
-  onDataChanged: function(data) {
-    allRecords = data;
-    // 대시보드 화면이 열려 있는 상태라면 바로 다시 그려줌
-    if (!document.getElementById('dashboardScreen').classList.contains('hidden')) {
-      renderDashboard();
-    }
-  }
-});
+    // Firestore 실시간 구독 시작 (페이지 로드 시 즉시 실행)
+    // 이 호출이 빠져 있으면 submissions 컬렉션 데이터가 allRecords에 절대 채워지지 않는다.
+    window.dataSdk.init({
+      onDataChanged: function(data) {
+        allRecords = data;
+        // 교사 대시보드가 이미 열려있는 상태라면 화면도 즉시 갱신
+        if (!document.getElementById('dashboardScreen').classList.contains('hidden')) {
+          renderDashboard();
+        }
+      }
+    });
 
     // 대시보드 렌더링
     function renderDashboard() {
@@ -237,7 +289,8 @@ window.dataSdk.init({
           <td>${esc(r.answer_1)}</td>
           <td>${esc(r.answer_2)}</td>
           <td>${esc(r.answer_3)}</td>
-          <td class="text-gray-400 text-xs">${time}</td>`;
+          <td class="text-gray-400 text-xs">${time}</td>
+          <td><button type="button" class="px-3 py-1.5 rounded-md text-xs font-medium bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 whitespace-nowrap" data-id="${esc(r._id)}" onclick="deleteSubmission(this.dataset.id, '${esc(r.student_name)}')">삭제</button></td>`;
         fragment.appendChild(tr);
       });
       tbody.innerHTML = '';
@@ -245,6 +298,19 @@ window.dataSdk.init({
     }
 
     function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    // 학생 데이터 삭제
+    async function deleteSubmission(id, name) {
+      if (!id) return;
+      const ok = confirm(`${name} 학생의 제출 데이터를 삭제할까요?\n삭제하면 되돌릴 수 없습니다.`);
+      if (!ok) return;
+      const res = await window.dataSdk.remove(id);
+      if (!res.isOk) {
+        alert('삭제에 실패했습니다. 다시 시도해주세요.');
+      }
+      // 메모리 폴백 모드에서는 onSnapshot이 없으므로, 성공 시 dataSdk.remove가
+      // 내부적으로 리스너들을 호출해 allRecords와 화면을 자동 갱신함
+    }
 
     // 교사 모드 접근 로직
     function requestTeacherAccess() {
@@ -410,7 +476,7 @@ window.dataSdk.init({
       btn.disabled = true;
       btn.innerText = '제출 중...';
 
-      // 깃허브 배포 환경에서도 작동하도록 로컬 스토리지에 데이터를 저장하는 Mock SDK 호출
+      // Firestore submissions 컬렉션에 데이터를 저장
       const res = await window.dataSdk.create({
         student_number: currentStudentNumber,
         student_name: currentStudentName,
@@ -427,9 +493,14 @@ window.dataSdk.init({
         // 간단한 키워드 채점 (선생님 참고용)
         let score = 0;
         const n = v => v.replace(/\s/g, '').toLowerCase();
-        if (n(q1).includes('일정') || n(q1).includes('유지') || n(q1).includes('안변')) score++;
+        // Q1: 온도가 일정한 구간(0°C, 100°C)을 언급했는지 확인
+        const mentions0 = /0\s*(도|°|℃)/.test(q1);
+        const mentions100 = /100\s*(도|°|℃)/.test(q1);
+        if (mentions0 && mentions100) score++;
         if (n(q2).includes('상태변화') || n(q2).includes('상태')) score++;
-        if ((n(q3).includes('액체') && n(q3).includes('기체')) || n(q3).includes('기화') || n(q3).includes('수증기') || n(q3).includes('증발')) score++;
+        // Q3: 열에너지가 상태 변화(분자 간 인력/배열 변화)에 쓰인다는 내용을 언급했는지 확인
+        const n3 = n(q3);
+        if (n3.includes('상태변화') || n3.includes('분자') || n3.includes('인력') || n3.includes('결합') || n3.includes('배열')) score++;
         
         if (score === 3) { fb.style.color = '#16a34a'; fb.innerText = '🎉 완벽해요! 선생님께 제출이 완료되었습니다.'; }
         else { fb.style.color = '#ea580c'; fb.innerText = `👍 제출이 완료되었습니다! (키워드 매칭: ${score}/3)`; }
